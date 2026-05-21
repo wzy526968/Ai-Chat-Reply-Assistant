@@ -152,11 +152,3 @@ npm run electron
   Electron 主进程
 - `electron/preload.cjs`
   Electron 预加载桥接
-
-## 下一步建议
-
-1. 把本地存储升级成 SQLite 或 Prisma
-2. 增加对话搜索、归档和标签
-3. 给 Electron 加快捷键唤起和剪贴板读取
-4. 增加“复制成功”埋点和常用回复统计
-5. 做真正的桌面打包与自动更新

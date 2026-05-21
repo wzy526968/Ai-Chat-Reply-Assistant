@@ -1,36 +1,162 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Chat Reply Assistant
 
-## Getting Started
+一个面向微信 / QQ 聊天场景的半自动回复助手原型。
 
-First, run the development server:
+你手动贴入最近几轮聊天上下文，选择场景、语气和目标后，页面会生成 3 条更自然的候选回复。当前版本保留“人工确认后发送”的模式，不做自动代发。
+
+## 技术栈
+
+- `Next.js 16`
+- `React 19`
+- `TypeScript`
+- `Tailwind CSS 4`
+- `Electron`
+- `OpenAI-compatible API`
+- `localStorage`
+
+## 当前能力
+
+- `Next.js + TypeScript + App Router` 项目骨架
+- 聊天场景与语气切换
+- 用户偏好本地保存
+- 聊天历史本地保存与切换
+- `/api/reply` 接口
+- 未配置模型密钥时的本地 mock 返回
+- 基础敏感关键词拦截
+- Electron 悬浮窗桌面壳
+
+## Web 版启动
+
+先安装依赖：
+
+```bash
+npm install
+```
+
+然后启动开发环境：
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+启动成功后，在浏览器里打开：
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```txt
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+如果 `3000` 端口被占用，Next.js 会自动换到 `3001` 或其他端口，以终端里显示的 `Local:` 地址为准。
 
-## Learn More
+## Electron 悬浮窗启动
 
-To learn more about Next.js, take a look at the following resources:
+先启动网页开发服务：
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+再开一个新的终端窗口，进入同一个项目目录后运行：
 
-## Deploy on Vercel
+```bash
+npm run electron
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+说明：
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Electron 会打开一个默认置顶的小窗
+- 小窗默认加载 `http://localhost:3000/?shell=electron`
+- 如果网页服务没启动，Electron 会显示一个带说明的兜底页面
+- 如果网页服务跑在 `3001`，可以这样启动：
+
+```bash
+ELECTRON_START_URL=http://localhost:3001/?shell=electron npm run electron
+```
+
+## 如何接入真实模型
+
+先复制环境变量模板：
+
+```bash
+cp .env.example .env.local
+```
+
+然后编辑 `.env.local`：
+
+```env
+OPENAI_API_KEY=你的 DeepSeek 或 OpenAI 兼容 API 密钥
+OPENAI_MODEL=deepseek-chat
+OPENAI_BASE_URL=https://api.deepseek.com
+```
+
+说明：
+
+- 变量名叫 `OPENAI_*`，但可以接任何兼容 OpenAI 协议的服务
+- `OPENAI_API_KEY` 不填时，页面会走 mock 文案，方便前端联调
+- `OPENAI_MODEL` 可以换成你自己的可用模型
+- `OPENAI_BASE_URL` 可以填 OpenAI 官方地址，也可以填 DeepSeek 或你自己的兼容网关
+
+## 数据保存方式
+
+当前版本的历史记录和用户偏好保存在浏览器本地存储里：
+
+- `reply-assistant.preferences`
+- `reply-assistant.conversations`
+- `reply-assistant.activeConversationId`
+
+这意味着：
+
+- 同一浏览器下刷新后不会丢
+- 换浏览器、清理站点数据后会消失
+- Electron 版会使用自己的本地会话存储
+
+## 常用命令
+
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run electron
+```
+
+## 上传 GitHub 前确认
+
+这些文件不要上传：
+
+- `.env.local`
+- `node_modules`
+- `.next`
+- `.DS_Store`
+- `.idea`
+
+项目已经在 `.gitignore` 里忽略了它们。上传时应该保留 `.env.example`，这样别人可以复制它创建自己的 `.env.local`。
+
+## 主要文件
+
+- `src/app/page.tsx`
+  首页入口
+- `src/components/reply-assistant-shell.tsx`
+  客户端壳组件
+- `src/components/reply-assistant.tsx`
+  主界面和交互逻辑
+- `src/lib/conversation.ts`
+  默认数据、本地存储 key 和对话帮助函数
+- `src/app/api/reply/route.ts`
+  生成回复的接口
+- `src/lib/model.ts`
+  模型调用与 mock 兜底
+- `src/lib/prompt.ts`
+  提示词拼接
+- `src/lib/safety.ts`
+  风险过滤
+- `electron/main.cjs`
+  Electron 主进程
+- `electron/preload.cjs`
+  Electron 预加载桥接
+
+## 下一步建议
+
+1. 把本地存储升级成 SQLite 或 Prisma
+2. 增加对话搜索、归档和标签
+3. 给 Electron 加快捷键唤起和剪贴板读取
+4. 增加“复制成功”埋点和常用回复统计
+5. 做真正的桌面打包与自动更新

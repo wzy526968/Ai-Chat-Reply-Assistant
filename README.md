@@ -118,18 +118,6 @@ npm run lint
 npm run electron
 ```
 
-## 上传 GitHub 前确认
-
-这些文件不要上传：
-
-- `.env.local`
-- `node_modules`
-- `.next`
-- `.DS_Store`
-- `.idea`
-
-项目已经在 `.gitignore` 里忽略了它们。上传时应该保留 `.env.example`，这样别人可以复制它创建自己的 `.env.local`。
-
 ## 主要文件
 
 - `src/app/page.tsx`
